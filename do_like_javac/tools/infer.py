@@ -22,24 +22,25 @@ infer_group.add_argument('-cfArgs', '--cfArgs', metavar='<cfArgs>',
                         help='arguments for checker framework')
 
 def run(args, javac_commands, jars):
-    # the dist directory if CFI.
+    print os.environ
+    for jc in javac_commands:
+        cmd = get_tool_command(args, jc['javac_switches']['classpath'], jc['java_files'])
+        common.run_cmd(cmd, args, 'infer')
+
+def get_tool_command(args, target_classpath, java_files):
+    # the dist directory of CFI.
     CFI_dist = os.path.join(os.environ['JSR308'], 'checker-framework-inference', 'dist')
     CFI_command = ['java']
 
-    print os.environ
-
-    for jc in javac_commands:
-        target_cp = jc['javac_switches']['classpath']
-
-        cp = target_cp + \
+    cp = target_classpath + \
              ':' + os.path.join(CFI_dist, 'checker.jar') + \
              ':' + os.path.join(CFI_dist, 'plume.jar') + \
              ':' + os.path.join(CFI_dist, 'checker-framework-inference.jar')
 
-        if 'CLASSPATH' in os.environ:
-            cp += ':' + os.environ['CLASSPATH']
+    if 'CLASSPATH' in os.environ:
+        cp += ':' + os.environ['CLASSPATH']
 
-        cmd = CFI_command + ['-classpath', cp,
+    CFI_command += ['-classpath', cp,
                              'checkers.inference.InferenceLauncher',
                              '--solverArgs', args.solverArgs,
                              '--cfArgs', args.cfArgs,
@@ -47,9 +48,10 @@ def run(args, javac_commands, jars):
                              '--solver', args.solver,
                              '--mode', args.mode,
                              '--hacks=true',
-                             '--targetclasspath', target_cp,
+                             '--targetclasspath', target_classpath,
                              '--logLevel=WARNING',
                              '-afud', args.afuOutputDir]
-        cmd.extend(jc['java_files'])
+    CFI_command.extend(java_files)
 
-        common.run_cmd(cmd, args, 'infer')
+    return CFI_command
+

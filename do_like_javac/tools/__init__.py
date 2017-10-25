@@ -10,6 +10,7 @@ import dyntracecounts
 # import soot
 import check
 import infer
+import testminimizer
 
 TOOLS = {
   # 'soot'      : soot,
@@ -23,6 +24,7 @@ TOOLS = {
   'chicory'   : chicory,
   'dyntrace'  : dyntrace,
   'dyntracecounts' : dyntracecounts,
+  'testminimizer' : testminimizer,
 }
 
 def parsers():
