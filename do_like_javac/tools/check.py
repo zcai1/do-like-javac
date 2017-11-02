@@ -9,7 +9,13 @@ argparser = None
 def run(args, javac_commands, jars):
     for jc in javac_commands:
         pprint.pformat(jc)
-        cmd = get_tool_command(args, jc['javac_switches']['classpath'], jc['java_files'])
+
+        class_path = jc['javac_switches']['classpath']
+        if 'CLASSPATH' in os.environ:
+            class_path += ':' + os.environ['CLASSPATH']
+
+        cmd = get_tool_command(args, class_path, jc['java_files'])
+
         common.run_cmd(cmd, args, 'check')
 
 def get_tool_command(args, target_classpath, java_files):
