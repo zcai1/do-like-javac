@@ -23,11 +23,14 @@ infer_group.add_argument('-cfArgs', '--cfArgs', metavar='<cfArgs>',
 
 def run(args, javac_commands, jars):
     print os.environ
+    idx = 0
     for jc in javac_commands:
-        cmd = get_tool_command(args, jc['javac_switches']['classpath'], jc['java_files'])
+        jaif_file = "infer_result_{}.jaif".format(idx)
+        cmd = get_tool_command(args, jc['javac_switches']['classpath'], jc['java_files'], jaif_file)
         common.run_cmd(cmd, args, 'infer')
+        idx += 1
 
-def get_tool_command(args, target_classpath, java_files):
+def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif"):
     # the dist directory of CFI.
     CFI_dist = os.path.join(os.environ['JSR308'], 'checker-framework-inference', 'dist')
     CFI_command = ['java']
@@ -50,6 +53,7 @@ def get_tool_command(args, target_classpath, java_files):
                              '--hacks=true',
                              '--targetclasspath', target_classpath,
                              '--logLevel=WARNING',
+                             '--jaifFile', jaif_file,
                              '-afud', args.afuOutputDir]
     CFI_command.extend(java_files)
 
