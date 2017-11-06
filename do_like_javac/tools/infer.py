@@ -25,7 +25,7 @@ def run(args, javac_commands, jars):
     print os.environ
     idx = 0
     for jc in javac_commands:
-        jaif_file = "infer_result_{}.jaif".format(idx)
+        jaif_file = "logs/infer_result_{}.jaif".format(idx)
         cmd = get_tool_command(args, jc['javac_switches']['classpath'], jc['java_files'], jaif_file)
         common.run_cmd(cmd, args, 'infer')
         idx += 1
