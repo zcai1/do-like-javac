@@ -20,9 +20,10 @@ infer_group.add_argument('-solverArgs', '--solverArgs', metavar='<solverArgs>',
 infer_group.add_argument('-cfArgs', '--cfArgs', metavar='<cfArgs>',
                         action='store',default='',
                         help='arguments for checker framework')
-infer_group.add_argument('-crashExit', '--crashExit', type=bool,
-                        action='store', default=False,
-                        help='set True then dljc will early exit if it found a round of inference crashed during the iteration.')
+infer_group.add_argument('--inPlace', action='store_true',
+                        help='Whether or not the annoations should be inserted in the original source code')
+infer_group.add_argument('--crashExit', action='store_true',
+                        help='set it then dljc will early exit if it found a round of inference crashed during the iteration.')
 
 def run(args, javac_commands, jars):
     print os.environ
@@ -58,9 +59,14 @@ def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif
                              '--mode', args.mode,
                              '--hacks=true',
                              '--targetclasspath', target_classpath,
-                             '--logLevel=WARNING',
-                             '--jaifFile', jaif_file,
-                             '-afud', args.afuOutputDir]
+                             '--logLevel=INFO',
+                             '--jaifFile', jaif_file]
+
+    if args.inPlace:
+        CFI_command += ['--inPlace=true']
+    else:
+        CFI_command += ['-afud', args.afuOutputDir]
+
     CFI_command.extend(java_files)
 
     return CFI_command
