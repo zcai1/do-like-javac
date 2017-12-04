@@ -8,12 +8,8 @@ def retrieve(cmd, args, capturer):
     with open(cache_file, 'rb') as f:
       return pickle.load(f)
 
-  result = capturer.gen_instance(cmd, args).capture()
+  javac_commands, jars, stats = capturer.gen_instance(cmd, args).capture()
 
-  if not result:
-    return None
-
-  javac_commands, jars, stats = result
   with open(cache_file, 'wb') as f:
     pickle.dump((javac_commands, jars, stats), f)
 

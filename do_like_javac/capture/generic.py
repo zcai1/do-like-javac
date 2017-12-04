@@ -65,9 +65,6 @@ class GenericCapture(object):
         with open(os.path.join(self.args.output_directory, 'build_output.txt'), 'w') as f:
             f.write(result['output'])
 
-        if result['return_code'] != 0:
-            return None
-
         build_lines = result['output'].split('\n')
 
         javac_commands = self.get_javac_commands(build_lines)
