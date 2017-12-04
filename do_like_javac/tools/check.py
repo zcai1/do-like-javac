@@ -11,8 +11,6 @@ def run(args, javac_commands, jars):
         pprint.pformat(jc)
 
         class_path = jc['javac_switches']['classpath']
-        if 'CLASSPATH' in os.environ:
-            class_path += ':' + os.environ['CLASSPATH']
 
         cmd = get_tool_command(args, class_path, jc['java_files'])
 
@@ -20,6 +18,9 @@ def run(args, javac_commands, jars):
 
 def get_tool_command(args, target_classpath, java_files):
     # checker-framework javac.
+    if 'CLASSPATH' in os.environ:
+            target_classpath += ':' + os.environ['CLASSPATH']
+
     javacheck = os.environ['JSR308']+"/checker-framework/checker/bin/javac"
     checker_command = [javacheck,
                        "-processor", args.checker,
