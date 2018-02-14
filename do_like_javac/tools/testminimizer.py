@@ -111,22 +111,26 @@ def run(args, javac_commands, jars):
 
     # Minimizing file set.
     minimized_file_set = FileSetMinimization(args, classpath).run(java_files_list)
+    if len(minimized_file_set) < 1:
+        print "---- Do not found any thing interesting. ----"
+    else:
+        # Create test case directory, if not exist.
+        if not os.path.exists(args.testCaseDir):
+            os.mkdir(args.testCaseDir)
+            print "---- Created test case directory: {}".format(args.testCaseDir)
 
-    # Create test case directory, if not exist.
-    if not os.path.exists(args.testCaseDir):
-        os.mkdir(args.testCaseDir)
 
 
-    test_files = list()
-    print "---- copying files to test case directory {} ----".format(args.testCaseDir)
-    for source_file in minimized_file_set:
-        copy2(source_file, args.testCaseDir)
-        test_files.append(os.path.join(args.testCaseDir, basename(source_file)))
-    print "--- copy done ----"
+        test_files = list()
+        print "---- copying files to test case directory {} ----".format(args.testCaseDir)
+        for source_file in minimized_file_set:
+            copy2(source_file, args.testCaseDir)
+            test_files.append(os.path.join(args.testCaseDir, basename(source_file)))
+        print "--- copy done ----"
 
-    for test_file in test_files:
-        together_java_files = ListUtil.get_complement_list(list(test_file), test_files)
-        FileMinimization.run(args, classpath, test_file, together_java_files)
+        for test_file in test_files:
+            together_java_files = ListUtil.get_complement_list(list(test_file), test_files)
+            FileMinimization.run(args, classpath, test_file, together_java_files)
 
     print "------ Debugging script finished ------"
 
