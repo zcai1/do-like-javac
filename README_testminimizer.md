@@ -1,3 +1,8 @@
+##### About Delta Debugging
+
+Here is the [slides](http://www.ist.tugraz.at/teaching/pub/Main/SoftwareMaintenance/SOMADeltaDebugging.pdf) I found in the internet
+that I can understand for delta debugging. And also my file set minimization algorithm is developed based on this slides.
+
 #### Usage of test minimizer
 
 TestMinimizer is a tool that helps minimize a test case from a real
@@ -67,3 +72,5 @@ project](https://github.com/CharlesZ-Chen/DemoProject4TestMinimizer)
 that demos the TestMinimizer. You can clone it and try to run the demo
 script there to have a better sense of what TestMinimizer can do for
 you.
+
+
