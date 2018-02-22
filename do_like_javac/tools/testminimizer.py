@@ -350,12 +350,12 @@ class FileSetMinimization(object):
                 # Reduce to complement of delta_chunk.
                 return self.minimize_file_set(complement_chunk, max(n - 1, 2)) if len(delta_chunk) > 1 else complement_chunk
 
-            elif n < len(file_list):
-                # Increase divide granularity on file_list.
-                return self.minimize_file_set(file_list, min(len(file_list), 2 * n))
-            else:
-                # Done.
-                return file_list
+        if n < len(file_list):
+            # Increase divide granularity on file_list.
+            return self.minimize_file_set(file_list, min(len(file_list), 2 * n))
+        else:
+            # Done.
+            return file_list if self.interesting(file_list) else list()
 
     def interesting(self, file_list):
         """
