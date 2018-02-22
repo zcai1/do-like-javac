@@ -364,7 +364,7 @@ class FileSetMinimization(object):
         Return true if the file_list is interesting, i.e. trigger a crash in the debugged tool.
         Return false otherwise.
         """
-        exec_result = ToolRunningUtil.running_tool(self.tool_args, file_list, self.target_classpath)
+        exec_result = ToolRunningUtil.running_tool(self.tool_args, file_list, self.target_classpath, "file_set_minimization")
 
         # Delegate to InterestingJudger to decide if current test case is interesting.
         is_interesting = InterestingJudger.interesting(exec_result)
