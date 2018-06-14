@@ -68,7 +68,7 @@ be: `at package.class.thisMethod\(class.java:58\)`.
 ##### Demo example
 
 I've created a [demo
-project](https://github.com/CharlesZ-Chen/DemoProject4TestMinimizer)
+project](https://github.com/opprop/DemoProject4TestMinimizer)
 that demos the TestMinimizer. You can clone it and try to run the demo
 script there to have a better sense of what TestMinimizer can do for
 you.
