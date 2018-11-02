@@ -33,7 +33,7 @@ def run(args, javac_commands, jars):
         cmd = get_tool_command(args, jc['javac_switches']['classpath'], jc['java_files'], jaif_file)
         status = common.run_cmd(cmd, args, 'infer')
         if args.crashExit and not status['return_code'] == 0:
-            print "----- CF Inference crashed! Terminates DLJC. -----"
+            print "----- CF Inference/Typecheck crashed! Terminates DLJC. -----"
             sys.exit(1)
         idx += 1
 
@@ -50,20 +50,27 @@ def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif
     if 'CLASSPATH' in os.environ:
         cp += ':' + os.environ['CLASSPATH']
 
-    # classpaths must be added to target_classpath for running CFI in typecheck mode
+    # os env classpath must be added to targetclasspath for running CFI in typecheck mode
     target_classpath += ':' + os.environ['CLASSPATH']
+    # TODO: see if this is still needed:
+    # env_classpath must also have a project's dependent jars
+    # os.environ['CLASSPATH'] = target_classpath
 
-    CFI_command += ['-classpath', cp,
-                             'checkers.inference.InferenceLauncher',
-                             '--solverArgs', args.solverArgs,
-                             '--cfArgs', args.cfArgs,
-                             '--checker', args.checker,
-                             '--solver', args.solver,
-                             '--mode', args.mode,
-                             '--hacks=true',
-                             '--targetclasspath', target_classpath,
-                             '--logLevel=INFO',
-                             '--jaifFile', jaif_file]
+    CFI_command += [        # '-p', # printCommands before executing
+                            '-classpath', cp,
+                            'checkers.inference.InferenceLauncher']
+
+    if not args.cfArgs == "":
+        CFI_command += [    '--cfArgs', args.cfArgs]
+
+    CFI_command += [        '--checker', args.checker,
+                            '--solver', args.solver,
+                            '--solverArgs', args.solverArgs,
+                            '--mode', args.mode,
+                            '--hacks=true',
+                            '--targetclasspath', target_classpath,
+                            '--logLevel=INFO',
+                            '--jaifFile', jaif_file]
 
     if args.inPlace:
         CFI_command += ['--inPlace=true']
