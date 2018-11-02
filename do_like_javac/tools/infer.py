@@ -50,6 +50,9 @@ def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif
     if 'CLASSPATH' in os.environ:
         cp += ':' + os.environ['CLASSPATH']
 
+    # classpaths must be added to target_classpath for running CFI in typecheck mode
+    target_classpath += ':' + os.environ['CLASSPATH']
+
     CFI_command += ['-classpath', cp,
                              'checkers.inference.InferenceLauncher',
                              '--solverArgs', args.solverArgs,
