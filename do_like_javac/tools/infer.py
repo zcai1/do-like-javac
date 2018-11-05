@@ -50,11 +50,12 @@ def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif
     if 'CLASSPATH' in os.environ:
         cp += ':' + os.environ['CLASSPATH']
 
-    # os env classpath must be added to targetclasspath for running CFI in typecheck mode
-    target_classpath += ':' + os.environ['CLASSPATH']
-    # TODO: see if this is still needed:
-    # env_classpath must also have a project's dependent jars
-    # os.environ['CLASSPATH'] = target_classpath
+        # os env classpath must be added to targetclasspath for running CFI in
+        # typecheck mode
+        target_classpath += ':' + os.environ['CLASSPATH']
+        # TODO: see if this is still needed:
+        # env_classpath must also have a project's dependent jars
+        # os.environ['CLASSPATH'] = target_classpath
 
     CFI_command += [        # '-p', # printCommands before executing
                             '-classpath', cp,
