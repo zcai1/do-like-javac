@@ -1,5 +1,6 @@
 import os,sys
 import argparse
+import subprocess
 import common
 
 argparser = argparse.ArgumentParser(add_help=False)
@@ -41,6 +42,24 @@ def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif
     # the dist directory of CFI.
     CFI_dist = os.path.join(os.environ['JSR308'], 'checker-framework-inference', 'dist')
     CFI_command = ['java']
+
+    java_version = subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT)
+    # Compatible with Python3. In Python 2.7, type(java_version) == str; but in Python3, type(java_version) == bytes.
+    # After do-like-javac updates to Python 3, this code can still work.
+    if isinstance(java_version, bytes):
+        java_version = java_version.decode("utf-8")
+    # java_version is a String like this:
+    # 'openjdk version "1.8.0_222"
+    # OpenJDK Runtime Environment (build 1.8.0_222-8u222-b10-1ubuntu1~19.04.1-b10)
+    # OpenJDK 64-Bit Server VM (build 25.222-b10, mixed mode)
+    # '
+    # We need to extract the version number from this String.
+    # split_version_number is a list of split version numbers in String type, e.g., ["1", "8", "0_222"].
+    # For Java 9+, it can simply be ["9"]. So in this case we should compare the first element directly.
+    split_version_number = java_version.splitlines()[0].split()[2].strip('"').split(".")
+    is_jvm8 = split_version_number[0] == "8" if len(split_version_number) == 1 else split_version_number[1] == "8"
+    if is_jvm8:
+        CFI_command += ['-DInferenceLauncher.runtime.bcp=' + os.path.join(CFI_dist, "javac.jar")]
 
     cp = target_classpath + \
              ':' + os.path.join(CFI_dist, 'checker.jar') + \
