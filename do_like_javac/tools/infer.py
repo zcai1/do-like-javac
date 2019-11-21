@@ -40,7 +40,7 @@ def run(args, javac_commands, jars):
 
 def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif"):
     # the dist directory of CFI.
-    CFI_dist = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "../../../")), 'checker-framework-inference', 'dist')
+    CFI_dist = os.path.join(os.path.abspath(os.path.join(sys.path[0], "../../../")), 'checker-framework-inference', 'dist')
     CFI_command = ['java']
 
     java_version = subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT)
