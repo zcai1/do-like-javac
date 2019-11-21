@@ -40,7 +40,7 @@ def run(args, javac_commands, jars):
 
 def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif"):
     # the dist directory of CFI.
-    CFI_dist = os.path.join(os.path.abspath(os.path.join(os.getcwd(), "../../../")), 'checker-framework-inference', 'dist')
+    CFI_dist = os.path.join(os.path.split(os.path.realpath(__file__))[0], "../../../", 'checker-framework-inference', 'dist')
     CFI_command = ['java']
 
     java_version = subprocess.check_output(["java", "-version"], stderr=subprocess.STDOUT)
@@ -58,7 +58,7 @@ def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif
     # For Java 9+, it can simply be ["9"]. So in this case we should compare the first element directly.
     split_version_number = []
     for each_line in java_version.splitlines():
-        if each_line.startswith('openjdk'):
+        if each_line.startswith('openjdk version') or each_line.startswith('java version'):
             split_version_number = each_line.split()[2].strip('"').split(".")
             break
     assert len(split_version_number) >= 1, 'No openjdk version info found. java_version: {}'.format(java_version)
