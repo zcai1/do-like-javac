@@ -3,8 +3,13 @@
 import common
 import os
 import pprint
+import argparse
 
-argparser = None
+argparser = argparse.ArgumentParser(add_help=False)
+check_group = argparser.add_argument_group('checker-framework tool arguments')
+
+check_group.add_argument('-s', '--stubs', metavar='<stubs>',
+                         action='store', help='stub files to use')
 
 def run(args, javac_commands, jars):
     for jc in javac_commands:
@@ -25,6 +30,9 @@ def get_tool_command(args, target_classpath, java_files):
     checker_command = [javacheck,
                        "-processor", args.checker,
                        "-classpath", target_classpath]
+    if args.stubs:
+        checker_command += ["-Astubs", args.stubs]
+
     checker_command.extend(java_files)
 
     return checker_command
