@@ -31,7 +31,7 @@ def get_tool_command(args, target_classpath, java_files):
                        "-processor", args.checker,
                        "-classpath", target_classpath]
     if args.stubs:
-        checker_command += ["-Astubs", args.stubs]
+        checker_command += ["-Astubs={}".format(args.stubs)]
 
     checker_command.extend(java_files)
 
