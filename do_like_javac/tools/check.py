@@ -8,7 +8,7 @@ import argparse
 argparser = argparse.ArgumentParser(add_help=False)
 check_group = argparser.add_argument_group('checker-framework tool arguments')
 
-check_group.add_argument('-s', '--stubs', metavar='<stubs>',
+check_group.add_argument('--stubs', metavar='<stubs>',
                          action='store', help='stub files to use')
 
 def run(args, javac_commands, jars):
