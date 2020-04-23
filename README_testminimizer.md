@@ -41,6 +41,12 @@ cd lithium
 python setup.py install
 ```
 
+Or install it via `pip install`:
+
+```
+pip2 install lithium-reducer --user
+```
+
 You need to manually install this dependency at the moment.
 
 
