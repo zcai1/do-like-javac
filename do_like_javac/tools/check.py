@@ -1,9 +1,10 @@
 # DEPRECATED -- WILL BE REMOVED IN FUTURE VERSION
 
-import common
 import os
 import pprint
 import argparse
+
+from . import common
 
 argparser = argparse.ArgumentParser(add_help=False)
 check_group = argparser.add_argument_group('checker-framework tool arguments')

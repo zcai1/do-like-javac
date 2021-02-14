@@ -1,6 +1,6 @@
 import os
-import common
 import tempfile
+from . import common
 
 argparser = None
 no_jdk = False

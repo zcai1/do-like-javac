@@ -10,7 +10,7 @@ def get_entry_point(jar):
     class_pattern = "Main-Class:"
 
     with zipfile.ZipFile(jar, 'r') as zip:
-        metadata = str.splitlines(zip.read("META-INF/MANIFEST.MF"))
+        metadata = str.splitlines(zip.read("META-INF/MANIFEST.MF").decode("utf-8"))
         for line in metadata:
             if class_pattern in line:
                 content = line[len(class_pattern):].strip()
@@ -69,7 +69,7 @@ class GenericCapture(object):
 
         javac_commands = self.get_javac_commands(build_lines)
         target_jars = self.get_target_jars(build_lines)
-        jars_with_entry_points = map(get_entry_point, target_jars)
+        jars_with_entry_points = list(map(get_entry_point, target_jars))
 
         self.record_stats(stats, javac_commands, jars_with_entry_points)
 

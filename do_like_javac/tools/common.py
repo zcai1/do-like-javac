@@ -1,5 +1,5 @@
 import sys, os, traceback
-import subprocess32 as subprocess
+import subprocess
 import timeit
 from threading import Timer
 
@@ -73,14 +73,18 @@ def run_cmd(cmd, args=None, tool=None):
 
   try:
     start_time = timeit.default_timer()
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    process = subprocess.Popen(
+      cmd, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+    )
 
     if args and args.timeout:
       timer = Timer(args.timeout, kill_proc, [process, stats])
       timer.start()
 
-    for line in iter(process.stdout.readline, b''):
-      stats['output'] = stats['output'] + line
+    for line in iter(process.stdout.readline, b""):
+      if isinstance(line, bytes):
+        line = line.decode("utf-8")
+      stats["output"] += line
       output(line)
 
     process.stdout.close()

@@ -1,7 +1,8 @@
 import os,sys
 import argparse
 import subprocess
-import common
+
+from . import common
 
 argparser = argparse.ArgumentParser(add_help=False)
 infer_group = argparser.add_argument_group('inference tool arguments')
@@ -27,14 +28,14 @@ infer_group.add_argument('--crashExit', action='store_true',
                         help='set it then dljc will early exit if it found a round of inference crashed during the iteration.')
 
 def run(args, javac_commands, jars):
-    print os.environ
+    print(os.environ)
     idx = 0
     for jc in javac_commands:
         jaif_file = "logs/infer_result_{}.jaif".format(idx)
         cmd = get_tool_command(args, jc['javac_switches']['classpath'], jc['java_files'], jaif_file)
         status = common.run_cmd(cmd, args, 'infer')
         if args.crashExit and not status['return_code'] == 0:
-            print "----- CF Inference/Typecheck crashed! Terminates DLJC. -----"
+            print("----- CF Inference/Typecheck crashed! Terminates DLJC. -----")
             sys.exit(1)
         idx += 1
 
@@ -64,7 +65,7 @@ def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif
     assert len(split_version_number) >= 1, 'No openjdk version info found. java_version: {}'.format(java_version)
     is_jvm8 = split_version_number[0] == "8" if len(split_version_number) == 1 else split_version_number[1] == "8"
     if is_jvm8:
-        print 'Using Java 8, runtime bcp will be added.'
+        print('Using Java 8, runtime bcp will be added.')
         CFI_command += ['-DInferenceLauncher.runtime.bcp=' + os.path.join(CFI_dist, "javac.jar")]
 
     cp = target_classpath + \

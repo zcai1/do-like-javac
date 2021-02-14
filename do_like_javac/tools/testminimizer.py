@@ -2,9 +2,8 @@ import argparse, math
 import os, shutil
 from shutil import copy2
 from os.path import basename
-import subprocess32 as subprocess
 import re
-import common, infer, check
+from . import (common, infer, check)
 
 import lithium
 
@@ -64,10 +63,10 @@ SUPPORT_TOOLS = {
 
 
 def run(args, javac_commands, jars):
-    print "------ Running debugging script ------"
+    print("------ Running debugging script ------")
 
     if not args.debuggedTool in SUPPORT_TOOLS:
-        print "ERROR: Could not find tool {} in support tools.".format(args.debuggedTool)
+        print("ERROR: Could not find tool {} in support tools.".format(args.debuggedTool))
         return None
 
     # Create bytecode output directory, if not exist.
@@ -97,7 +96,7 @@ def run(args, javac_commands, jars):
         target_total_cp += target_cp
 
     if args.onlyCompileBytecodeBase:
-        print "Succeed built project bytecode in directory {}.".format(args.debugByteCodeDir)
+        print("Succeed built project bytecode in directory {}.".format(args.debugByteCodeDir))
         return None
 
     # Compute the classpath for compiling test files. (need this to test compilability of a reduced file)
@@ -112,27 +111,27 @@ def run(args, javac_commands, jars):
     # Minimizing file set.
     minimized_file_set = FileSetMinimization(args, classpath).run(java_files_list)
     if len(minimized_file_set) < 1:
-        print "---- Do not found any thing interesting. ----"
+        print("---- Do not found any thing interesting. ----")
     else:
         # Create test case directory, if not exist.
         if not os.path.exists(args.testCaseDir):
             os.mkdir(args.testCaseDir)
-            print "---- Created test case directory: {}".format(args.testCaseDir)
+            print("---- Created test case directory: {}".format(args.testCaseDir))
 
 
 
         test_files = list()
-        print "---- copying files to test case directory {} ----".format(args.testCaseDir)
+        print("---- copying files to test case directory {} ----".format(args.testCaseDir))
         for source_file in minimized_file_set:
             copy2(source_file, args.testCaseDir)
             test_files.append(os.path.join(args.testCaseDir, basename(source_file)))
-        print "--- copy done ----"
+        print("--- copy done ----")
 
         for test_file in test_files:
             together_java_files = ListUtil.get_complement_list(list(test_file), test_files)
             FileMinimization.run(args, classpath, test_file, together_java_files)
 
-    print "------ Debugging script finished ------"
+    print("------ Debugging script finished ------")
 
 class InterestingJudger(object):
     expect_return_code = 1
@@ -152,7 +151,7 @@ class InterestingJudger(object):
             # Set match_regex to True if no regex exist.
             match_regex = True
         is_interesting = match_rtn_code and match_regex
-        # print "rtn_code match: {}, exist_regex: {}, match_regex: {}, is_interesting: {}.".format(match_rtn_code, exist_regex, match_regex, is_interesting)
+        # print("rtn_code match: {}, exist_regex: {}, match_regex: {}, is_interesting: {}.".format(match_rtn_code, exist_regex, match_regex, is_interesting))
         return is_interesting
 
 class FileMinimization(object):
@@ -174,7 +173,7 @@ class FileMinimization(object):
         @param together_java_files files that need to run with the given java_file to trigger tool crash
         """
 
-        print "====== Minimizing file {} ======".format(java_file)
+        print("====== Minimizing file {} ======".format(java_file))
         FileMinimization.preprocess(java_file)
 
         l = lithium.Lithium()
@@ -184,28 +183,28 @@ class FileMinimization(object):
         l.testcase.readTestcase(java_file)
 
         # First round of reduction by main minimization algorithm
-        print "====== Performing main minimization algorithm ======"
+        print("====== Performing main minimization algorithm ======")
         l.strategy = lithium.Minimize()
         l.run()
-        print "------ main minimization algorithm done ------"
+        print("------ main minimization algorithm done ------")
 
         # Second round of reduction, focus on reducing balanced pairs
-        print "====== Minimizing balanced pairs ======"
+        print("====== Minimizing balanced pairs ======")
         l.strategy = lithium.MinimizeBalancedPairs()
         l.run()
-        print "------ Minimizing balanced pairs done ------"
+        print("------ Minimizing balanced pairs done ------")
         # Third round ofreduction, reducing surrounding pairs
-        print "====== Minimizing surrounding pairs ======"
+        print("====== Minimizing surrounding pairs ======")
         l.strategy = lithium.MinimizeSurroundingPairs()
         l.run()
-        print "------ Minimizing surrounding pairs done ------"
+        print("------ Minimizing surrounding pairs done ------")
 
         # Final round of reduction, repeat the main minimization algorithm
-        print "====== Performing main minimization algorithm ======"
+        print("====== Performing main minimization algorithm ======")
         l.strategy = lithium.Minimize()
         l.run()
-        print "------ main minimization algorithm done ------"
-        print "------ file {} has been minimized ------".format(java_file)
+        print("------ main minimization algorithm done ------")
+        print("------ file {} has been minimized ------".format(java_file))
 
     @staticmethod
     def preprocess(java_file):
@@ -213,7 +212,7 @@ class FileMinimization(object):
         Remove all comment lines, empty lines in the given java_file.
         This coulde reduce the searching space for file minimization.
         """
-        print "==== Preprocess: removing comments and empty lines in file {} ====".format(java_file)
+        print("==== Preprocess: removing comments and empty lines in file {} ====".format(java_file))
         # First remove all comments.
         with open(java_file, 'r') as read_file:
             file_chars = read_file.read()
@@ -261,7 +260,7 @@ class FileMinimization(object):
 
         with open(java_file, 'w') as write_file:
             write_file.write(''.join(write_lines))
-        print "---- Preprocess done ----"
+        print("---- Preprocess done ----")
 
 class FileInterestingJudger(object):
     """
@@ -295,7 +294,7 @@ class FileInterestingJudger(object):
 
         # Delegate to InterestingJudger to decide if current test case is interesting.
         is_interesting = InterestingJudger.interesting(exec_result)
-        print "Current file lines: {}, Pass compile. Is Interesting: {}.".format(testcase_lines, is_interesting)
+        print("Current file lines: {}, Pass compile. Is Interesting: {}.".format(testcase_lines, is_interesting))
         return is_interesting
 
     def cleanup(self, conditionArgs):
@@ -315,15 +314,15 @@ class FileSetMinimization(object):
         self.target_classpath = target_classpath
 
     def run(self, file_list):
-        print "====== Minimizing file set ======"
+        print("====== Minimizing file set ======")
         minimized_file_set = self.minimize_file_set(file_list, 2)
         if len(minimized_file_set) > 0:
-            print "======== BREAK POINT ======"
-            print "Found a minimized file set: {}.".format(minimized_file_set)
+            print("======== BREAK POINT ======")
+            print("Found a minimized file set: {}.".format(minimized_file_set))
         else:
-            print "Does not found a minimized file set."
+            print("Does not found a minimized file set.")
         return minimized_file_set
-        print "------ Minimize file set done ------"
+        print("------ Minimize file set done ------")
 
     def minimize_file_set(self, file_list, n):
         """
@@ -368,7 +367,7 @@ class FileSetMinimization(object):
 
         # Delegate to InterestingJudger to decide if current test case is interesting.
         is_interesting = InterestingJudger.interesting(exec_result)
-        print "Checked with files: {}. Is interesting: {}.".format(' '.join(file_list), is_interesting)
+        print("Checked with files: {}. Is interesting: {}.".format(' '.join(file_list), is_interesting))
         return is_interesting
 
 class ToolRunningUtil(object):
@@ -413,7 +412,7 @@ class ListUtil(object):
         the out put would be [[0, 1], [2]]
         """
         k, m = divmod(len(file_list), n)
-        return [file_list[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in xrange(n)]
+        return [file_list[i * k + min(i, m) : (i + 1) * k + min(i + 1, m)] for i in range(n)]
 
     @staticmethod
     def get_complement_list(sub_list, domain_list):

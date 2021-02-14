@@ -3,6 +3,7 @@
 import os
 import pprint
 import argparse
+from . import common
 
 argparser = argparse.ArgumentParser(add_help=False)
 soot_group = argparser.add_argument_group('soot arguments')
@@ -26,5 +27,3 @@ def run(args, javac_commands, jars):
 
         cmd = soot_command + ["-cp", cp, "-process-dir", class_dir]
         common.run_cmd(cmd, args, 'soot')
-
-
