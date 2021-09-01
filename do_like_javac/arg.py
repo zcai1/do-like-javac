@@ -10,7 +10,8 @@ import argparse
 import os
 import sys
 
-from . import tools, capture
+from . import tools
+from . import capture
 
 DEFAULT_OUTPUT_DIRECTORY = os.path.join(os.getcwd(), 'dljc-out')
 
@@ -50,12 +51,33 @@ base_group.add_argument('--cache', action='store_true',
                         help='''Use the dljc cache (if available)''')
 
 base_group.add_argument('-c', '--checker', metavar='<checker>',
-                        action='store',default='NullnessChecker',
+                        action='store',
                         help='A checker to check (for checker/inference tools)')
+
+base_group.add_argument('--stubs', metavar='<stubs>',
+                        action=AbsolutePathAction,
+                        help='Location of stub files to use for the Checker Framework')
+
+base_group.add_argument('--ajava', metavar='<ajava>',
+                        action=AbsolutePathAction,
+                        help='Location of ajava files to use for the Checker Framework')
 
 base_group.add_argument('-l', '--lib', metavar='<lib_dir>',
                         action='store',dest='lib_dir',
                         help='Library directory with JARs for tools that need them.')
+
+base_group.add_argument('--jdkVersion', metavar='<jdkVersion>',
+                        action='store',
+                        help='Version of the JDK to use with the Checker Framework.')
+
+base_group.add_argument('--quals', metavar='<quals>',
+                        action='store',
+                        help='Path to custom annotations to put on the classpath when using the Checker Framework.')
+
+base_group.add_argument('--extraJavacArgs', metavar='<extraJavacArgs>',
+                        action='store',
+                        help='List of extra arguments to pass to javac when running a Checker Framework checker. Use this for '
+                             'arguments that are only needed when running a checker, such as -AassumeSideEffectFree.')
 
 def split_args_to_parse():
     split_index = len(sys.argv)

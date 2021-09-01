@@ -1,8 +1,18 @@
+import argparse
+import json
 import os
 import tempfile
+
+from . import jsoninv
 from . import common
 
-argparser = None
+argparser = argparse.ArgumentParser(add_help=False)
+dyntrace_group = argparser.add_argument_group('dyntrace arguments')
+
+dyntrace_group.add_argument('-X', '--daikon-xml',
+                        action='store_true',
+                        help='Have Daikon emit XML')
+
 no_jdk = False
 no_ternary = False
 
@@ -39,19 +49,23 @@ def dyntrace(args, i, java_command, out_dir, lib_dir, run_parts=['randoop','chic
     f.write(classdir)
 
   randoop_classpath = lib('randoop.jar') + ":" + base_classpath
-  compile_classpath = lib("junit-4.12.jar") + ":" + base_classpath
+  # randoop needs to be on compile classpath due to replacement of System.exit with SystemExitCalledError
+  compile_classpath = lib("junit-4.12.jar") + ":" + randoop_classpath
   chicory_classpath = ':'.join([os.path.abspath(test_class_directory),
                                 os.path.join(os.environ.get('DAIKONDIR'), 'daikon.jar'),
                                 lib("hamcrest-core-1.3.jar"),
                                 compile_classpath])
+  replace_call_classpath = lib('replacecall.jar')
 
   if 'randoop' in run_parts:
     classes = sorted(common.get_classes(java_command))
     class_list_file = make_class_list(test_class_directory, classes)
     junit_after_path = get_special_file("junit-after", out_dir, i)
 
-    generate_tests(args, randoop_classpath, class_list_file, test_src_dir, junit_after_path)
+    generate_tests(args, randoop_classpath, class_list_file, test_src_dir, junit_after_path, replace_call_classpath)
     files_to_compile = get_files_to_compile(test_src_dir)
+    if not files_to_compile:
+      return
     compile_test_cases(args, compile_classpath, test_class_directory, files_to_compile)
 
   if 'chicory' in run_parts:
@@ -64,6 +78,9 @@ def dyntrace(args, i, java_command, out_dir, lib_dir, run_parts=['randoop','chic
     run_daikon(args, chicory_classpath, test_class_directory, False)
     if 'invcounts' in run_parts:
       run_daikon(args, chicory_classpath, test_class_directory, True)
+
+    if args.daikon_xml:
+      daikon_print_xml(args, chicory_classpath, test_class_directory)
 
 def get_select_list(classdir):
   """Get a list of all directories under classdir containing class files."""
@@ -118,23 +135,39 @@ def make_class_list(out_dir, classes):
     class_file.flush()
     return class_file.name
 
-def generate_tests(args, classpath, class_list_file, test_src_dir, junit_after_path, time_limit=200, output_limit=4000):
+def generate_tests(args, classpath, class_list_file, test_src_dir, junit_after_path, rc_classpath, time_limit=200, output_limit=4000):
+
+  # Methods to be omitted due to non-determinism.
+  omitted_methods = "\"(org\\.la4j\\.operation\\.ooplace\\.OoPlaceKroneckerProduct\\.applyCommon)|(PseudoOracle\\.verifyFace)|(org\\.znerd\\.math\\.NumberCentral\\.createRandomInteger)|(org\\.jbox2d\\.common\\.MathUtils\\.randomFloat.*)|(org\\.jbox2d\\.utests\\.MathTest\\.testFastMath)|(org\\.jbox2d\\.testbed\\.tests\\.DynamicTreeTest.*)|(org\\.la4j\\.Matrix.*)\""
+
+  selection_log_file = "dljc-out/selection-log.txt"
+  operation_log_file = "dljc-out/operation-history-log.txt"
+  randoop_log_file = "dljc-out/randoop-log.txt"
+
   randoop_command = ["java", "-ea",
                      "-classpath", classpath,
+                     "-Xbootclasspath/a:{}".format(rc_classpath),
+                     "-javaagent:{}".format(rc_classpath),
                      "randoop.main.Main", "gentests",
-                     '--classlist={}'.format(class_list_file),
-                     "--timelimit={}".format(time_limit),
+                     "--classlist={}".format(class_list_file),
+                     "--time-limit={}".format(time_limit),
+                     "--omitmethods={}".format(omitted_methods),
                      "--junit-reflection-allowed=false",
-                     "--ignore-flaky-tests=true",
-                     "--timeout=5",
+                     "--flaky-test-behavior=DISCARD",
+                     "--usethreads=true",
+                     "--call-timeout=5",
                      "--silently-ignore-bad-class-names=true",
-                     '--junit-output-dir={}'.format(test_src_dir)]
+                     "--junit-output-dir={}".format(test_src_dir),
+                     # Uncomment these lines to produce Randoop debugging logs
+                     #"--log={}".format(randoop_log_file),
+                     "--selection-log={}".format(selection_log_file),
+                     "--operation-history-log={}".format(operation_log_file)]
 
   if junit_after_path:
     randoop_command.append("--junit-after-all={}".format(junit_after_path))
 
   if output_limit and output_limit > 0:
-    randoop_command.append('--outputlimit={}'.format(output_limit))
+    randoop_command.append('--output-limit={}'.format(output_limit))
 
   common.run_cmd(randoop_command, args, 'randoop')
 
@@ -179,7 +212,7 @@ def run_dyncomp(args, classpath, main_class, out_dir, selects=[], omits=[]):
                      "--output-dir={}".format(out_dir)]
 
   if no_jdk:
-      dyncomp_command.append("--rt-file=none")
+    dyncomp_command.append("--rt-file=none")
   dyncomp_command.extend(selects)
   dyncomp_command.extend(omits)
   dyncomp_command.append(main_class)
@@ -192,13 +225,26 @@ def run_daikon(args, classpath, out_dir, invcounts):
                      "daikon.Daikon",
                      "-o", os.path.join(out_dir, "invariants.gz")]
   if invcounts:
-      daikon_command.append("--config_option")
-      daikon_command.append("daikon.Daikon.calc_possible_invs=true")
+    daikon_command.append("--config_option")
+    daikon_command.append("daikon.Daikon.calc_possible_invs=true")
   if no_ternary:
-      daikon_command.append("--config_option")
-      daikon_command.append("daikon.inv.ternary.threeScalar.LinearTernary.enabled=false")
-      daikon_command.append("--config_option")
-      daikon_command.append("daikon.inv.ternary.threeScalar.LinearTernaryFloat.enabled=false")
+    daikon_command.append("--config_option")
+    daikon_command.append("daikon.inv.ternary.threeScalar.LinearTernary.enabled=false")
+    daikon_command.append("--config_option")
+    daikon_command.append("daikon.inv.ternary.threeScalar.LinearTernaryFloat.enabled=false")
   daikon_command.append(os.path.join(out_dir, "RegressionTestDriver.dtrace.gz"))
 
   common.run_cmd(daikon_command, args, 'daikon')
+
+def daikon_print_xml(args, classpath, out_dir):
+  daikon_command = ["java", "-Xmx4G",
+                    "-classpath", classpath,
+                    "daikon.PrintInvariants",
+                    "--wrap_xml",
+                    "--output", os.path.join(out_dir, "invariants.xml"),
+                    os.path.join(out_dir, "invariants.gz")]
+
+  common.run_cmd(daikon_command, args, 'daikon')
+  js = jsoninv.generate_json_invariants(args, out_dir)
+  with open(os.path.join(out_dir, 'invariants.json'), 'w') as f:
+    json.dump(js, f)

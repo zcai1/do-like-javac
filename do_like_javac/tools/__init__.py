@@ -1,10 +1,23 @@
-from . import (jprint, randoop, randoop_old, bixie, graphtools, chicory, dyntrace, dyntracecounts, check, infer, testminimizer)
+from . import jprint
+from . import randoop
+from . import randoop_old
+from . import bixie
+from . import graphtools
+from . import chicory
+from . import dyntrace
+from . import dyntracecounts
 
 # import soot
+from . import check
+from . import infer
+from . import wpi
+
+from . import testminimizer
 
 TOOLS = {
   # 'soot'      : soot,
   'checker'   : check,
+  'wpi'       : wpi,
   'inference' : infer,
   'print'     : jprint,
   'randoop'   : randoop,

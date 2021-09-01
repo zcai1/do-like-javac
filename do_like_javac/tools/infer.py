@@ -71,6 +71,7 @@ def get_tool_command(args, target_classpath, java_files, jaif_file="default.jaif
     cp = target_classpath + \
              ':' + os.path.join(CFI_dist, 'checker.jar') + \
              ':' + os.path.join(CFI_dist, 'plume.jar') + \
+             ':' + os.path.join(CFI_dist, 'com.microsoft.z3.jar') + \
              ':' + os.path.join(CFI_dist, 'checker-framework-inference.jar')
 
     if 'CLASSPATH' in os.environ:
