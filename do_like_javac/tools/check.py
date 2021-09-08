@@ -6,6 +6,8 @@ import argparse
 
 from . import common
 
+argparser = None
+
 def run(args, javac_commands, jars):
     # checker-framework javac.
     javacheck = os.environ['CHECKERFRAMEWORK']+"/checker/bin/javac"
