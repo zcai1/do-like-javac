@@ -1,5 +1,3 @@
-# DEPRECATED -- WILL BE REMOVED IN FUTURE VERSION
-
 import os
 import pprint
 import argparse
@@ -25,7 +23,6 @@ def run(args, javac_commands, jars):
 
     checker_command += getArgumentsByVersion(args.jdkVersion)
 
-def run(args, javac_commands, jars):
     for jc in javac_commands:
         ## What is the point of this pprint command, whose result is not used?
         pprint.pformat(jc)
