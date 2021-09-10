@@ -2,7 +2,7 @@ import os
 import pprint
 import shutil
 import glob
-from urllib import request
+import urllib.request, urllib.parse, urllib.error
 
 argparser = None
 
@@ -106,16 +106,16 @@ def find_or_download_jars():
     randoop_jar = os.path.join(randoop_jar_dir, "randoop-2.0.jar")
     if not os.path.isfile(randoop_jar):
         print("Downloading randoop to %s" % randoop_jar)
-        request.urlretrieve("https://github.com/randoop/randoop/releases/download/v2.0/randoop-2.0.jar", randoop_jar)
+        urllib.request.urlretrieve ("https://github.com/randoop/randoop/releases/download/v2.0/randoop-2.0.jar", randoop_jar)
 
     junit_jar = os.path.join(randoop_jar_dir, "junit-4.12.jar")
     if not os.path.isfile(junit_jar):
         print("Downloading junit to %s" % junit_jar)
-        request.urlretrieve("https://github.com/junit-team/junit/releases/download/r4.12/junit-4.12.jar", junit_jar)
+        urllib.request.urlretrieve ("https://github.com/junit-team/junit/releases/download/r4.12/junit-4.12.jar", junit_jar)
 
     hamcrest_jar = os.path.join(randoop_jar_dir, "hamcrest-core-1.3.jar")
     if not os.path.isfile(hamcrest_jar):
         print("Downloading hamcrest to %s" % hamcrest_jar)
-        request.urlretrieve("http://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar", hamcrest_jar)
+        urllib.request.urlretrieve ("http://search.maven.org/remotecontent?filepath=org/hamcrest/hamcrest-core/1.3/hamcrest-core-1.3.jar", hamcrest_jar)
 
     return (randoop_jar, junit_jar, hamcrest_jar)

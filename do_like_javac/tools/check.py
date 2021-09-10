@@ -1,39 +1,76 @@
-# DEPRECATED -- WILL BE REMOVED IN FUTURE VERSION
-
 import os
 import pprint
 import argparse
 
 from . import common
 
-argparser = argparse.ArgumentParser(add_help=False)
-check_group = argparser.add_argument_group('checker-framework tool arguments')
-
-check_group.add_argument('--stubs', metavar='<stubs>',
-                         action='store', help='stub files to use')
+argparser = None
 
 def run(args, javac_commands, jars):
+    # checker-framework javac.
+    javacheck = os.environ['CHECKERFRAMEWORK']+"/checker/bin/javac"
+    if args.checker is not None:
+        checker_command = [
+            javacheck,
+            "-processor", args.checker,
+            "-Astubs=" + str(args.stubs),
+            "-Aajava=" + str(args.ajava)
+        ]
+    else:
+        # checker should run via auto-discovery
+        checker_command = [javacheck, "-Astubs=" + str(args.stubs),
+                           "-Aajava=" + str(args.ajava)]
+
+    checker_command += getArgumentsByVersion(args.jdkVersion)
+
     for jc in javac_commands:
+        ## What is the point of this pprint command, whose result is not used?
         pprint.pformat(jc)
-
-        class_path = jc['javac_switches']['classpath']
-
-        cmd = get_tool_command(args, class_path, jc['java_files'])
-
+        javac_switches = jc['javac_switches']
+        cp = javac_switches['classpath']
+        if args.quals:
+            cp += args.quals + ':'
+        paths = ['-classpath', cp]
+        pp = ''
+        if 'processorpath' in javac_switches:
+            pp = javac_switches['processorpath'] + ':'
+        if args.lib_dir:
+            cp += pp + args.lib_dir + ':'
+        java_files = jc['java_files']
+        cmd = checker_command + ["-classpath", cp] + java_files
         common.run_cmd(cmd, args, 'check')
 
-def get_tool_command(args, target_classpath, java_files):
-    # checker-framework javac.
-    if 'CLASSPATH' in os.environ:
-            target_classpath += ':' + os.environ['CLASSPATH']
+## other_args is other command-line arguments to javac
+def getArgumentsByVersion(jdkVersion, other_args=[]):
+    if jdkVersion is not None:
+        version = int(jdkVersion)
+    else:
+        version = 8
+    # add arguments depending on requested JDK version (default 8)
+    result = []
+    if version == 8:
+        result += ['-J-Xbootclasspath/p:' + os.environ['CHECKERFRAMEWORK'] + '/checker/dist/javac.jar']
+    elif version == 11 or version == 16:
+        release_8 = False
+        for i, str in enumerate(other_args):
+            if str == '--release' and other_args[i+1] == "8":
+                release_8 = True
+        if not release_8:
+            # Avoid javac "error: option --add-opens not allowed with target 1.8"
+            if version == 11:
+                result += ['-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED']
+            elif version == 16:
+                result += ['-J--add-opens=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED',
+                           '-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED',
+                           '-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED',
+                           '-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED',
+                           '-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED',
+                           '-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED',
+                           '-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED',
+                           '-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED',
+                           '-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED']
+            
+    else:
+        raise ValueError("the Checker Framework only supports Java versions 8, 11 and 16")
 
-    javacheck = os.path.join(os.path.split(os.path.realpath(__file__))[0], "../../../", "checker-framework/checker/bin/javac")
-    checker_command = [javacheck,
-                       "-processor", args.checker,
-                       "-classpath", target_classpath]
-    if args.stubs:
-        checker_command += ["-Astubs={}".format(args.stubs)]
-
-    checker_command.extend(java_files)
-
-    return checker_command
+    return result

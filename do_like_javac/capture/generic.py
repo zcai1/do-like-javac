@@ -5,6 +5,8 @@ import do_like_javac.tools.common as cmdtools
 
 def is_switch(s):
     return s != None and s.startswith('-')
+def is_switch_first_part(s):
+    return s != None and s.startswith('-') and ("=" not in s)
 
 def get_entry_point(jar):
     class_pattern = "Main-Class:"
@@ -65,6 +67,9 @@ class GenericCapture(object):
         with open(os.path.join(self.args.output_directory, 'build_output.txt'), 'w') as f:
             f.write(result['output'])
 
+        if result['return_code'] != 0:
+            return None
+
         build_lines = result['output'].split('\n')
 
         javac_commands = self.get_javac_commands(build_lines)
@@ -86,12 +91,11 @@ class GenericCapture(object):
 
             if is_switch(a):
                 possible_switch_arg = False
-
-            if a.endswith('.java'):
+            elif a.endswith('.java'):
                 files.append(a)
                 possible_switch_arg = False
 
-            if is_switch(prev_arg):
+            if is_switch_first_part(prev_arg):
                 if possible_switch_arg:
                     switches[prev_arg[1:]] = a
                 else:
