@@ -1,0 +1,1 @@
+lithium_reducer==0.6.0

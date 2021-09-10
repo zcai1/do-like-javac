@@ -19,7 +19,7 @@ fi
 
 ### Clone the CF. If there is a branch with the same name as this branch, git-clone-related will check out that branch.
 rm -rf /tmp/"$USER"/checker-framework
-/tmp/"$USER"/plume-scripts/git-clone-related typetools checker-framework /tmp/"$USER"/checker-framework
+/tmp/"$USER"/plume-scripts/git-clone-related opprop checker-framework /tmp/"$USER"/checker-framework
 export CHECKERFRAMEWORK=/tmp/"$USER"/checker-framework
 
 export DLJC=$(pwd)/dljc
